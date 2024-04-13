@@ -1,7 +1,7 @@
 /**
  * Convert modern datetime to the Warhammer 40,000 imperial dating system.
  * 
- * @param tstmp       The timestamp from which the date will be constructed.
+ * @param tstmp       The timestamp or date object from which the imperial date will be constructed.
  * @param checkNumber The check number for the imperial date to use.
  * 
  * @return The imperial date as a string (or false if an error occours).
@@ -21,10 +21,18 @@ function imperialDatingSystem(tstmp = Date.now(), checkNumber = 0) {
 		return (givenYear % 4 === 0 && (givenYear % 100 !== 0 || givenYear % 400 === 0)) ? true : false;
 	}
 
-	if(typeof(tstmp) != 'number')
+	/* attempt to create the incoming date from different formats and return false if unable */
+	if(tstmp instanceof Date)
+		var givenDate = tstmp;
+	else if(!isNaN(tstmp) && tstmp.toString().length >= 10) {
+		if(tstmp.toString().length == 10)
+			tstmp = tstmp.toString() + '000';
+		var givenDate = new Date(parseInt(tstmp));
+	}
+	else
 		return false;
+
 	var date40k; /** the date that will be constructed and returned */
-	var givenDate = new Date(tstmp);
 	var givenYear = givenDate.getFullYear();
 
 	var givenM = Math.floor(givenYear / 1000); /** millenium */
