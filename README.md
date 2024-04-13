@@ -27,7 +27,10 @@ imperialDatingSystem();
 ### Parameters
 
 tstmp - a timestamp or Date object with the modern Gregorian date to convert. Default: NOW
+
 checkNumber - The Check Number for the converted date to display. For an explanation of the Check Number please refer to the section below. Default: 0
+
+simpleYear - Whether the calculation should be done by the regular calendrical year or on basis of the sidereal year. Default: true (calendrical)
 
 ### Output
 
