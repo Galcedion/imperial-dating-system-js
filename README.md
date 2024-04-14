@@ -32,6 +32,8 @@ checkNumber - The Check Number for the converted date to display. For an explana
 
 simpleYear - Whether the calculation should be done by the regular calendrical year or on basis of the sidereal year. Default: true (calendrical)
 
+compact - Whether the output date should be formatted without whitespace or not. Added for readability. Default: false (with whitespaces)
+
 ### Output
 
 The function returns a string containing the date converted into the Imperial Dating System.
