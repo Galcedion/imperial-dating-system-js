@@ -8,7 +8,7 @@
  *
  * @return The imperial date as a string (or false if an error occours).
  */
-function imperialDatingSystem(tstmp = Date.now(), checkNumber = 0, simpleYear = true, compact = false) {
+function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = true, compact = false) {
 
 	/**
 	 * Check if the year is a leap year
@@ -107,4 +107,49 @@ function imperialDatingSystem(tstmp = Date.now(), checkNumber = 0, simpleYear = 
 		return `${checkNumber}${givenYearFraction}${givenMFraction}.M${givenM}`;
 	else
 		return `${checkNumber} ${givenYearFraction} ${givenMFraction}.M${givenM}`;
+}
+
+/**
+ * Convert a Warhammer 40,000 date from imperial dating system to a modern datetime.
+ *
+ * @param ids   The imperial date from which the datetime will be constructed.
+ * @param giveTstmp If true, the return value is an integer timestamp (in ms), otherwise a Date object is returned.
+ *
+ * @return The timestamp or Date object of the date (or false if an error occours).
+ */
+function idsImperialToModern(ids, giveTstmp = true) {
+
+	/**
+	 * Check if the year is a leap year
+	 *
+	 * Using the rules of the Gregorian calendar it is checked if a given year is a leap year or not.
+	 *
+	 * @param givenYear The 4-digit year to check.
+	 *
+	 * @return Is the year a leap year (true or false).
+	 */
+	function isLeapYear(givenYear) {
+		return (givenYear % 4 === 0 && (givenYear % 100 !== 0 || givenYear % 400 === 0)) ? true : false;
+	}
+
+	ids = ids.toString().trim().replace(/ /g, '').replace(/\./g, '');
+	if(!ids.match(/^\d{7}M\d+$/))
+		return false;
+
+	var givenYearFraction = parseInt(ids.slice(1, 4));
+	var givenMFraction = parseInt(ids.slice(4, 7));
+	var givenM = parseInt(ids.slice(8)) - 1;
+	if (givenMFraction == 0)
+		++givenM;
+	var givenYear = givenM * 1000 + givenMFraction; /** year */
+
+	/** calculate the seconds passed since the year began */
+	var tmpYearSeconds = (isLeapYear(givenYear) ? 366 : 365) * 24 * 60 * 60;
+	var tmpElapsedSeconds = (givenYearFraction == 0) ? tmpYearSeconds : tmpYearSeconds / 1000 * givenYearFraction;
+
+	var modernDate = new Date(0); /** the date that will be constructed and returned */
+	modernDate.setFullYear(givenYear);
+	modernDate.setSeconds(tmpElapsedSeconds); /** there is no need to calculate the exact date, JS does that for us */
+
+	return giveTstmp ? modernDate.valueOf() : modernDate;
 }

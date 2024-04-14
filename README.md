@@ -1,8 +1,8 @@
 # imperial-dating-system-js
 
-This is a JavaScript converter for the Warhammer 40,000 Imperial Dating System.
+This is a JavaScript converter for the Warhammer 40,000 Imperial Dating System, allowing for a conversion from the currently used timestamps to the Imperial Dating System and from the Imperial Dating System to currently used timestamps.
 
-It is based on the detailed explanation found on [https://warhammer40k.fandom.com/wiki/Imperial_Dating_System](https://warhammer40k.fandom.com/wiki/Imperial_Dating_System), thanks to the guys over there.
+It is based on the detailed explanation found on [https://warhammer40k.fandom.com/wiki/Imperial_Dating_System](https://warhammer40k.fandom.com/wiki/Imperial_Dating_System), thanks to the guys over there for the information on the IDS!
 
 (Archive: [https://web.archive.org/web/20240121133546/https://warhammer40k.fandom.com/wiki/Imperial_Dating_System](https://web.archive.org/web/20240121133546/https://warhammer40k.fandom.com/wiki/Imperial_Dating_System))
 
@@ -19,24 +19,38 @@ wget https://raw.githubusercontent.com/Galcedion/imperial-dating-system-js/maste
 
 ## Usage
 
-To use imperial-dating-system-js, call the function in your own JavaScript code.
+To use imperial-dating-system-js, call the required function in your own JavaScript code.
 ```javascript
-imperialDatingSystem();
+idsModernToImperial();    // Convert from modern timestamp formats to Imperial Dating System
+idsImperialToModern(ids); // Convert from Imperial Dating System to modern timestamps
 ```
 
 ### Parameters
 
-tstmp - a timestamp or Date object with the modern Gregorian date to convert. Default: NOW
-
+Parameters for idsModernToImperial:
+```
+tstmp       - A timestamp or Date object with the modern Gregorian date to convert. Default: NOW
 checkNumber - The Check Number for the converted date to display. For an explanation of the Check Number please refer to the section below. Default: 0
+simpleYear  - Whether the calculation should be done by the regular calendrical year or on basis of the sidereal year. Default: true (=> calendrical)
+compact     - Whether the output date should be formatted without whitespace or not. Added for readability. Default: false (=> with whitespaces)
+```
 
-simpleYear - Whether the calculation should be done by the regular calendrical year or on basis of the sidereal year. Default: true (calendrical)
-
-compact - Whether the output date should be formatted without whitespace or not. Added for readability. Default: false (with whitespaces)
+Parameters for idsImperialToModern:
+```
+ids       - Imperial date to convert. Must be provided!
+giveTstmp - Whether the output format should be an integer timestamp (in milliseconds) or a Date object. Default: true (=> timestamp)
+```
 
 ### Output
 
-The function returns a string containing the date converted into the Imperial Dating System.
+Output for idsModernToImperial:
+
+Imperial Dating System date as string OR boolean false if an error occurred
+
+
+Output for idsImperialToModern:
+
+A timestamp number or Date object OR boolean false if an error occurred
 
 ### Check Number
 
