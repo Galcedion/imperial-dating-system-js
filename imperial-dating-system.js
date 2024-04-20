@@ -29,38 +29,52 @@ function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = t
 	 * Calculates the year fraction based on the calendrical year (adding an additional day for leap years).
 	 *
 	 * @param givenDate The Date object containing the display time.
-	 * @param givenYear The 4-digit year.
 	 *
 	 * @return Year fraction as a string.
 	 */
-	function getFractionSimpleYear(givenDate, givenYear) {
+	function getFractionSimpleYear(givenDate) {
 		var tmpYearBeginTstmp = new Date(givenDate.getFullYear(), 0, 1).getTime() / 1000;
 		var tmpYearBeginDiff = (givenDate.getTime() / 1000 - tmpYearBeginTstmp) / 60 / 60;
-		var tmpYearHours = (isLeapYear(givenYear) ? 366 : 365) * 24; /** year fraction in hours */
+		var tmpYearHours = (isLeapYear(givenDate.getFullYear()) ? 366 : 365) * 24; /** year fraction in hours */
 
 		return ((Math.floor((tmpYearBeginDiff) / (tmpYearHours / 1000)) + 1) % 1000).toString().padStart(3, 0);
 	}
 
 	/**
-	 * TODO right now the function maps to the standard calendar and returns the same as getFractionSimpleYear (which is not what I intended)
+	 * Adjusts the given date object to the time passed in sidereal.
 	 *
-	 * Get the current year fraction on basis of a sidereal year.
+	 * Adjusting the date by the time difference between the Gregorian calendar and the sidereal year, eliminating leap years.
+	 * Counting from 0 AD (full year steps).
 	 *
-	 * Calculates the year fraction based on the sidereal year (adding an additional day for leap years).
-	 * To do this, every day of the year has time added on the basis of the total amount of days.
+	 * The source of the duration of a sidereal year can be found here: https://hpiers.obspm.fr/eop-pc/index.php?index=constants&lang=en
+	 * (https://web.archive.org/web/20230927173232/https://hpiers.obspm.fr/eop-pc/index.php?index=constants&lang=en)
 	 *
 	 * @param givenDate The Date object containing the display time.
-	 * @param givenYear The 4-digit year.
+	 */
+	function adjustDateToSidereal(givenDate) {
+		var tmpYearHours = (((365 * 24 + 6) * 60 + 9) * 60 + 9.76) / 60 / 60; /** year fraction in hours */ // a sidereal year has 365d 6h 9m 9.76s
+		var tmpYearDiff = 0;
+		for(let i = 0; i < givenDate.getFullYear(); i++) {
+			var iGregorianYearHours = (365 + (isLeapYear(i) ? 1 : 0)) * 24;
+			tmpYearDiff += iGregorianYearHours  - tmpYearHours;
+		}
+		givenDate.setHours(givenDate.getHours() + tmpYearDiff);
+	}
+
+	/**
+	 * Get the current year fraction on basis of a sidereal year.
+	 *
+	 * Calculates the year fraction based on the sidereal year.
+	 * Adjusted by the difference to the Gregorian calendar, counting from 0 AD.
+	 *
+	 * @param givenDate The Date object containing the display time.
 	 *
 	 * @return Year fraction as a string.
 	 */
-	function getFractionSiderealYear(givenDate, givenYear) {
+	function getFractionSiderealYear(givenDate) {
 		var tmpYearBeginTstmp = new Date(givenDate.getFullYear(), 0, 1).getTime() / 1000;
 		var tmpYearBeginDiff = (givenDate.getTime() / 1000 - tmpYearBeginTstmp) / 60 / 60;
-		var tmpSimpleYearHours = (isLeapYear(givenYear) ? 366 : 365) * 24;
 		var tmpYearHours = (((365 * 24 + 6) * 60 + 9) * 60 + 9.76) / 60 / 60; /** year fraction in hours */ // a sidereal year has 365d 6h 9m 9.76s
-		var tmpDayGap = (tmpSimpleYearHours - tmpYearHours) / (isLeapYear(givenYear) ? 366 : 365);
-		tmpYearBeginDiff -= (tmpYearBeginDiff / 24) * tmpDayGap;
 
 		return ((Math.floor((tmpYearBeginDiff) / (tmpYearHours / 1000)) + 1) % 1000).toString().padStart(3, 0);
 	}
@@ -87,6 +101,10 @@ function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = t
 	/* validating simpleYear */
 	if(typeof(simpleYear) != 'boolean')
 		return false;
+
+	/** adjusting date for sidereal calculation **/
+	if(!simpleYear)
+		adjustDateToSidereal(givenDate);
 
 	var date40k; /** the date that will be constructed and returned */
 	var givenYear = givenDate.getFullYear();
