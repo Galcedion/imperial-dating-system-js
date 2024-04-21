@@ -24,18 +24,22 @@ function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = t
 	}
 
 	/**
-	 * Get the current year fraction on basis of a simple year.
+	 * Get the current year fraction.
 	 *
-	 * Calculates the year fraction based on the calendrical year (adding an additional day for leap years).
+	 * Calculates the year fraction based on either the calendrical (adding an additional day for leap years) or sidereal year.
 	 *
 	 * @param givenDate The Date object containing the display time.
+	 * @param givenDate If the fraction is based on a simple year or a sidereal year.
 	 *
 	 * @return Year fraction as a string.
 	 */
-	function getFractionSimpleYear(givenDate) {
+	function getYearFraction(givenDate, simpleYear) {
 		var tmpYearBeginTstmp = new Date(givenDate.getFullYear(), 0, 1).getTime() / 1000;
 		var tmpYearBeginDiff = (givenDate.getTime() / 1000 - tmpYearBeginTstmp) / 60 / 60;
-		var tmpYearHours = (isLeapYear(givenDate.getFullYear()) ? 366 : 365) * 24; /** year fraction in hours */
+		if(simpleYear)
+			var tmpYearHours = (isLeapYear(givenDate.getFullYear()) ? 366 : 365) * 24; /** year fraction in hours */
+		else
+			var tmpYearHours = (((365 * 24 + 6) * 60 + 9) * 60 + 9.76) / 60 / 60; /** year fraction in hours */ // a sidereal year has 365d 6h 9m 9.76s
 
 		return ((Math.floor((tmpYearBeginDiff) / (tmpYearHours / 1000)) + 1) % 1000).toString().padStart(3, 0);
 	}
@@ -61,24 +65,6 @@ function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = t
 		givenDate.setHours(givenDate.getHours() + tmpYearDiff);
 	}
 
-	/**
-	 * Get the current year fraction on basis of a sidereal year.
-	 *
-	 * Calculates the year fraction based on the sidereal year.
-	 * Adjusted by the difference to the Gregorian calendar, counting from 0 AD.
-	 *
-	 * @param givenDate The Date object containing the display time.
-	 *
-	 * @return Year fraction as a string.
-	 */
-	function getFractionSiderealYear(givenDate) {
-		var tmpYearBeginTstmp = new Date(givenDate.getFullYear(), 0, 1).getTime() / 1000;
-		var tmpYearBeginDiff = (givenDate.getTime() / 1000 - tmpYearBeginTstmp) / 60 / 60;
-		var tmpYearHours = (((365 * 24 + 6) * 60 + 9) * 60 + 9.76) / 60 / 60; /** year fraction in hours */ // a sidereal year has 365d 6h 9m 9.76s
-
-		return ((Math.floor((tmpYearBeginDiff) / (tmpYearHours / 1000)) + 1) % 1000).toString().padStart(3, 0);
-	}
-
 	/* attempt to create the incoming date from different formats and return false if unable */
 	if(tstmp instanceof Date)
 		var givenDate = tstmp;
@@ -102,13 +88,15 @@ function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = t
 	if(typeof(simpleYear) != 'boolean')
 		return false;
 
+	/* validating compact */
+	if(typeof(compact) != 'boolean')
+		return false;
+
 	/** adjusting date for sidereal calculation **/
 	if(!simpleYear)
 		adjustDateToSidereal(givenDate);
 
-	var date40k; /** the date that will be constructed and returned */
 	var givenYear = givenDate.getFullYear();
-
 	var givenM = Math.floor(givenYear / 1000); /** millenium */
 	var givenMFraction = givenYear % 1000; /** millenium "fraction" in years (3 digits before the dot) */
 	if (givenMFraction != 0)
@@ -116,11 +104,9 @@ function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = t
 	givenMFraction = givenMFraction.toString().padStart(3, 0);
 
 	/** create year fraction (3 digits after check number) */
-	if(simpleYear)
-		var givenYearFraction = getFractionSimpleYear(givenDate, givenYear);
-	else
-		var givenYearFraction = getFractionSiderealYear(givenDate, givenYear);
+	var givenYearFraction = getYearFraction(givenDate, simpleYear);
 
+	/** returning a constructed date */
 	if(compact)
 		return `${checkNumber}${givenYearFraction}${givenMFraction}.M${givenM}`;
 	else
@@ -174,8 +160,17 @@ function idsImperialToModern(ids, giveTstmp = true, siderealGiven = false) {
 		return tmpYearDiff;
 	}
 
+	/* validating Imperial date */
 	ids = ids.toString().trim().replace(/ /g, '').replace(/\./g, '');
 	if(!ids.match(/^\d{7}M\d+$/))
+		return false;
+
+	/* validating giveTstmp */
+	if(typeof(giveTstmp) != 'boolean')
+		return false;
+
+	/* validating siderealGiven */
+	if(typeof(siderealGiven) != 'boolean')
 		return false;
 
 	var givenYearFraction = parseInt(ids.slice(1, 4));

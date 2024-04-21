@@ -10,7 +10,7 @@ It is based on the detailed explanation found on [https://warhammer40k.fandom.co
 
 1. Download the JavaScript file from GitHub.
 ```bash
-wget https://raw.githubusercontent.com/Galcedion/imperial-dating-system-js/master/imperial-dating-system.min.js
+wget https://raw.githubusercontent.com/Galcedion/imperial-dating-system-js/v1.0/imperial-dating-system.min.js
 ```
 2. Load the file into your website.
 ```xml
