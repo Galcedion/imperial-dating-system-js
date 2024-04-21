@@ -130,12 +130,13 @@ function idsModernToImperial(tstmp = Date.now(), checkNumber = 0, simpleYear = t
 /**
  * Convert a Warhammer 40,000 date from imperial dating system to a modern datetime.
  *
- * @param ids   The imperial date from which the datetime will be constructed.
- * @param giveTstmp If true, the return value is an integer timestamp (in ms), otherwise a Date object is returned.
+ * @param ids           The imperial date from which the datetime will be constructed.
+ * @param giveTstmp     If true, the return value is an integer timestamp (in ms), otherwise a Date object is returned.
+ * @param siderealGiven If true, the input date is sidereal. (output is still a calendric date)
  *
  * @return The timestamp or Date object of the date (or false if an error occours).
  */
-function idsImperialToModern(ids, giveTstmp = true) {
+function idsImperialToModern(ids, giveTstmp = true, siderealGiven = false) {
 
 	/**
 	 * Check if the year is a leap year
@@ -150,6 +151,29 @@ function idsImperialToModern(ids, giveTstmp = true) {
 		return (givenYear % 4 === 0 && (givenYear % 100 !== 0 || givenYear % 400 === 0)) ? true : false;
 	}
 
+	/**
+	 * Get the difference from the sidereal to calendar time.
+	 *
+	 * Gets the time difference between the sidereal year and the Gregorian calendar, adjusting for leap years.
+	 * Counting from 0 AD (full year steps).
+	 *
+	 * The source of the duration of a sidereal year can be found here: https://hpiers.obspm.fr/eop-pc/index.php?index=constants&lang=en
+	 * (https://web.archive.org/web/20230927173232/https://hpiers.obspm.fr/eop-pc/index.php?index=constants&lang=en)
+	 *
+	 * @param givenYear The Imperial year.
+	 *
+	 * @return The difference between sidereal and Gregorian in hours.
+	 */
+	function getSiderealCalendaricalDifference(givenYear) {
+		var tmpYearHours = (((365 * 24 + 6) * 60 + 9) * 60 + 9.76) / 60 / 60; /** year fraction in hours */ // a sidereal year has 365d 6h 9m 9.76s
+		var tmpYearDiff = 0;
+		for(let i = 0; i < givenYear; i++) {
+			var iGregorianYearHours = (365 + (isLeapYear(i) ? 1 : 0)) * 24;
+			tmpYearDiff += tmpYearHours - iGregorianYearHours;
+		}
+		return tmpYearDiff;
+	}
+
 	ids = ids.toString().trim().replace(/ /g, '').replace(/\./g, '');
 	if(!ids.match(/^\d{7}M\d+$/))
 		return false;
@@ -162,12 +186,17 @@ function idsImperialToModern(ids, giveTstmp = true) {
 	var givenYear = givenM * 1000 + givenMFraction; /** year */
 
 	/** calculate the seconds passed since the year began */
-	var tmpYearSeconds = (isLeapYear(givenYear) ? 366 : 365) * 24 * 60 * 60;
+	if(siderealGiven)
+		var tmpYearSeconds = ((365 * 24 + 6) * 60 + 9) * 60 + 9.76;
+	else
+		var tmpYearSeconds = (isLeapYear(givenYear) ? 366 : 365) * 24 * 60 * 60;
 	var tmpElapsedSeconds = (givenYearFraction == 0) ? tmpYearSeconds : tmpYearSeconds / 1000 * givenYearFraction;
 
 	var modernDate = new Date(0); /** the date that will be constructed and returned */
 	modernDate.setFullYear(givenYear);
 	modernDate.setSeconds(tmpElapsedSeconds); /** there is no need to calculate the exact date, JS does that for us */
+	if(siderealGiven)
+		modernDate.setHours(modernDate.getHours() + getSiderealCalendaricalDifference(givenYear));
 
 	return giveTstmp ? modernDate.valueOf() : modernDate;
 }

@@ -37,8 +37,9 @@ compact     - Whether the output date should be formatted without whitespace or 
 
 Parameters for idsImperialToModern:
 ```
-ids       - Imperial date to convert. Must be provided!
-giveTstmp - Whether the output format should be an integer timestamp (in milliseconds) or a Date object. Default: true (=> timestamp)
+ids           - Imperial date to convert. Must be provided! e.g. '0 001999.M41'
+giveTstmp     - Whether the output format should be an integer timestamp (in milliseconds) or a Date object. Default: true (=> timestamp)
+siderealGiven - Whether the Imperial input date is by sidereal (without leap years) or calendric. Default: false (=> calendric)
 ```
 
 ### Output
